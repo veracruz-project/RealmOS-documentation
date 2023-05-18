@@ -1,6 +1,10 @@
 ## Recipe for building Cantrip in Debian Docker container
 
-Tested on 2023-03-08:
+Upstream also has instructions:
+* https://github.com/AmbiML/sparrow-manifest
+* https://github.com/AmbiML/sparrow-cantrip-full/blob/main/docs/GettingStarted.md
+
+Tested on 2023-05-15:
 
 ```
 mkdir -p /data/sparrow7
@@ -30,6 +34,8 @@ curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
 chmod a+rx ~/bin/repo
 curl https://sh.rustup.rs -sSf | sh # hit return
 source "$HOME/.cargo/env"
+rustup toolchain add nightly-2023-01-26
+rustup target add aarch64-unknown-none
 pip install aenum future jinja2 jsonschema ordered_set \
   plyplus pyelftools pyfdt six sortedcontainers tempita
 cd
@@ -38,8 +44,6 @@ tar xf gcc-arm-11.2-2022.02-x86_64-aarch64-none-linux-gnu.tar.xz
 PATH="~/gcc-arm-11.2-2022.02-x86_64-aarch64-none-linux-gnu/bin:$PATH"
 echo 'PATH="$HOME/bin:$PATH"' >> ~/.bashrc
 echo 'PATH="$HOME/gcc-arm-11.2-2022.02-x86_64-aarch64-none-linux-gnu/bin:$PATH"' >> ~/.bashrc
-rustup toolchain add nightly-2023-01-26-x86_64-unknown-linux-gnu
-rustup target add aarch64-unknown-none
 
 # Get Sparrow source:
 cd /work
@@ -48,19 +52,17 @@ cd sparrow
 repo init -u https://github.com/AmbiML/sparrow-manifest -m sparrow-manifest.xml
 repo sync -j$(nproc)
 
-# Undo some recent breaking changes:
-( cd cantrip/projects/cantrip/apps/system/components/SecurityCoordinator/cantrip-security-coordinator && git checkout e7b4b1022645efcab64d55209315eb730d4a2bd0 )
-
 # Build and test:
 docker exec -it -u egrimley sparrow7 /bin/bash
 cd /work/sparrow
 export PLATFORM=rpi3
 source build/setup.sh
+# Apply this fix: https://github.com/AmbiML/sparrow-cantrip-full/pull/9/files
 m simulate
 
 # After about 10-15 minutes QEMU is running and we see:
-48 bytes in-use, 130510544 bytes free, 48 bytes requested, 1392640 overhead
-2 objs in-use, 2 objs requested
+4224 bytes in-use, 130539136 bytes free, 640592 bytes requested, 1359872 overhead
+2 objs in-use, 171 objs requested
 CANTRIP> EOF
 # Interrupt with C-a x
 
