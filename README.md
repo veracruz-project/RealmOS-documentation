@@ -10,7 +10,7 @@ A summary:
 
 | Name                                                                  |   Type                   |   Rust std support                               |   Vsock
 |-----------------------------------------------------------------------|--------------------------|--------------------------------------------------|---------
-| [CantripOS](https://github.com/AmbiML/sparrow-cantrip-full/tree/main)  Low_RCB OS (based on seL4)| only no_std                                      |  No
+| [CantripOS](https://github.com/AmbiML/sparrow-cantrip-full/tree/main) |Low_RCB OS (based on seL4)| only no_std                                      |  No
 | [Redox](https://gitlab.redox-os.org/redox-os/redox)                   | Microkernel              |          yup                                     |  No
 | [RustyHermit](https://github.com/hermitcore/rusty-hermit)             | Unikernel (libOS)        |          yup                                     |  No
 | [Unikraft](https://github.com/unikraft/unikraft)                      | a unikernel dev kit      | no rust support for aarch64, for x86 only no_std |  Recently added  
