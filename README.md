@@ -146,14 +146,15 @@ cargo xtask build --target aarch64
 
 Now to run the application with QEMU:
 ```sh
-qemu-system-aarch64 -semihosting -serial stdio -machine virt -m 512M -cpu max -smp 1 -display none -L /usr/share/qemu -kernel target/aarch64/debug/rusty-loader -initrd ../rusty-hermit/target/aarch64-unknown-hermit/debug/hello_world 
+qemu-system-aarch64 \
+                  -machine virt,gic-version=3 \
+                  -cpu cortex-a76 -smp 1 -m 512M  \
+                  -semihosting -L /usr/share/qemu \
+                  -display none -serial stdio \
+                  -kernel target/aarch64/release/rusty-loader \
+                  -device guest-loader,addr=0x48000000,initrd=../rusty-hermit/target/aarch64-unknown-hermit/debug/hello_world
 ```
-This gives the following error (it works perfectly fine for x86 though :( ):
-```sh
-[LOADER][INFO] Loader: [0x40200000 - 0x40232000]
-[LOADER] panicked at 'called `Option::unwrap()` on a `None` value', src/arch/aarch64/mod.rs:101:10
-qemu-system-aarch64: terminating on signal 2
-```
+
 
 RustyHermit can either use Qemu to run (in this case we need rusty-loader) or they have their own minimal hypervisor called uhyve, but there is only x86 support for uhyve ( and it doesn't work ..)
 
