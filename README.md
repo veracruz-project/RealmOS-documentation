@@ -20,9 +20,12 @@ A summary:
 a Microkernel written in Rust. it has support for Rust std on aarch64, no vsock support.
         - support for aarch64, builds with no errors but I encountered some runtime errors (it's been reported in there gitlab just few weeks ago) 
 https://gitlab.redox-os.org/redox-os/redox/-/issues/1376
-        - Their repo seems healthy, fairly active with few contributers.
+        - Their repo seems healthy, fairly active with few contributors.
 
 To get started: 
+
+(The following instructions also worked in a `debian:11` Docker container
+with `--device /dev/fuse --cap-add SYS_ADMIN --privileged`.)
 
 ```sh
 curl -sf https://gitlab.redox-os.org/redox-os/redox/raw/master/bootstrap.sh -o bootstrap.sh
@@ -31,6 +34,7 @@ source ~/.cargo/env
 sudo apt-get install qemu-system-aarch64
 sudo apt-get install u-boot-tools
 sudo apt-get install qemu-system-arm qemu-efi
+sudo apt-get install fuse
 cd redox
 ./build.sh -a aarch64 -c server qemu vga=no
 ```
