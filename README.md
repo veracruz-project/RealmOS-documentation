@@ -12,7 +12,7 @@ A summary:
 |-----------------------------------------------------------------------|--------------------------|--------------------------------------------------|---------
 | [CantripOS](https://github.com/AmbiML/sparrow-cantrip-full/tree/main) |Low_RCB OS (based on seL4)| only no_std                                      |  No
 | [Redox](https://gitlab.redox-os.org/redox-os/redox)                   | Microkernel              |          yup                                     |  No
-| [RustyHermit](https://github.com/hermitcore/rusty-hermit)             | Unikernel (libOS)        |          yup                                     |  No
+| [RustyHermit](https://github.com/hermitcore/rusty-hermit)             | Unikernel (libOS)        |          yup                                     | No (but support for virtio-net)
 | [Unikraft](https://github.com/unikraft/unikraft)                      | a unikernel dev kit      | no rust support for aarch64, for x86 only no_std |  Recently added  
 
 
@@ -155,7 +155,60 @@ qemu-system-aarch64 \
                   -device guest-loader,addr=0x48000000,initrd=../rusty-hermit/target/aarch64-unknown-hermit/debug/hello_world
 ```
 
-
+> output
+```sh
+[LOADER][INFO] Loader: [0x40200000 - 0x4021f000]
+[LOADER][INFO] Found ELF file with size 20629232
+[LOADER][INFO] Parsing kernel from ELF at 0x48000000..0x493ac6f0 (20629232 B)
+[LOADER][INFO] Loading kernel to 0x40400000
+[LOADER][INFO] TLS is at 0x4054a678..0x4054a6f2 (122 B)
+[LOADER][INFO] Detect 1 CPU(s)
+[LOADER][INFO] Detect UART at 0x9000000
+[LOADER][INFO] Jumping to HermitCore Application Entry Point at 0x40539f10
+[0][INFO] Welcome to HermitCore-rs 0.6.1
+[0][INFO] Kernel starts at 0x40400000
+[0][INFO] BSS starts at 0x4056eae8
+[0][INFO] TLS starts at 0x4054a678 (size 122 Bytes)
+[0][INFO] RAM starts at physical address 0x40000000
+[0][INFO] Physical address range: 1024GB
+[0][INFO] Support of 4KB pages: true
+[0][INFO] Support of 16KB pages: true
+[0][INFO] Support of 64KB pages: true
+[0][INFO] Total memory size: 506 MB
+[0][INFO] Kernel region: [0x40400000 - 0x40600000]
+[0][INFO] A pure Rust application is running on top of HermitCore!
+[0][INFO] Heap: size 446 MB, start address 0x200000
+[0][INFO] Heap is located at 0x200000..0x1c000000 (0 Bytes unmapped)
+[0][INFO] 
+[0][INFO] ===================== PHYSICAL MEMORY FREE LIST ======================
+[0][INFO] 0x0000005C4DF000 - 0x00000060000000
+[0][INFO] ======================================================================
+[0][INFO] 
+[0][INFO] 
+[0][INFO] ================== KERNEL VIRTUAL MEMORY FREE LIST ===================
+[0][INFO] 0x00000000002000 - 0x00000000200000
+[0][INFO] 0x0000001C000000 - 0x00000040000000
+[0][INFO] 0x00000040600000 - 0x00000100000000
+[0][INFO] ======================================================================
+[0][INFO] 
+[0][INFO] Intialize generic interrupt controller
+[0][INFO] Found GIC Distributor interface at 0x8000000 (size 0x10000)
+[0][INFO] Found generic interrupt controller at 0x80A0000 (size 0xF60000)
+[0][INFO] Timer interrupt: 14
+[0][INFO] 
+[0][INFO] ========================== CPU INFORMATION ===========================
+[0][INFO] Processor compatiblity:  arm,cortex-a76
+[0][INFO] Counter frequency:       62500000 Hz (from CNTFRQ_EL0)
+[0][INFO] ======================================================================
+[0][INFO] 
+[0][INFO] HermitCore-rs booted on 2023-06-29 14:15:35.0 +00:00:00
+[0][INFO] Compiled with PCI support
+[0][INFO] Compiled with ACPI support
+[0][INFO] HermitCore is running on common system!
+[0][WARN] Unable to read entropy! Fallback to a naive implementation!
+Hello World!
+[0][INFO] Shutting down system
+```
 RustyHermit can either use Qemu to run (in this case we need rusty-loader) or they have their own minimal hypervisor called uhyve, but there is only x86 support for uhyve ( and it doesn't work ..)
 
 To Build and run a hello-world application for x86:
@@ -184,85 +237,8 @@ Now to run the application with QEMU:
 ```sh
 qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -L /usr/share/qemu -kernel target/x86_64/debug/rusty-loader -initrd ../rusty-hermit/target/x86_64-unknown-hermit/debug/hello_world -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr -device isa-debug-exit,iobase=0xf4,iosize=0x04 -enable-kvm
 ```
-> Output:
-```sh
-[LOADER][INFO] Loader: [0x100000 - 0x12c018]
-[LOADER][INFO] Found Multiboot information at 0x9500
-[LOADER][WARN] Mapping 1 4KiB pages from 0x9000..0xa000 to 0x9000..0xa000
-[LOADER][WARN] Mapping 1 4KiB pages from 0x12e000..0x12f000 to 0x12e000..0x12f000
-[LOADER][INFO] Found module: [0x12e000 - 0x19d3d80]
-[LOADER][INFO] Module length: 0x18a5d80
-[LOADER][INFO] Found an ELF module at 0x12e000
-[LOADER][WARN] Mapping 209 4KiB pages from 0x12f000..0x200000 to 0x12f000..0x200000
-[LOADER][WARN] Mapping 12 2MiB pages from 0x200000..0x1a00000 to 0x200000..0x1a00000
-[LOADER][INFO] Parsing kernel from ELF at 0x12e000..0x19d3d80 (25845120 B)
-[LOADER][WARN] Mapping 2 2MiB pages from 0x1a00000..0x1e00000 to 0x1a00000..0x1e00000
-[LOADER][INFO] Loading kernel to 0x1a00000
-[LOADER][INFO] TLS is at 0x1c0f3e0..0x1c0f45a (122 B)
-[LOADER][INFO] Use stack address 0xa000
-[LOADER][WARN] Mapping 8 4KiB pages from 0xa000..0x12000 to 0xa000..0x12000
-[LOADER][INFO] BootInfo located at 0x12b010
-[LOADER][INFO] Jumping to HermitCore Application Entry Point at 0x1b44b30
-[0][INFO] Welcome to HermitCore-rs 0.6.1
-[0][INFO] Kernel starts at 0x1a00000
-[0][INFO] BSS starts at 0x1c33258
-[0][INFO] TLS starts at 0x1c0f3e0 (size 122 Bytes)
-[0][INFO] Total memory size: 63 MB
-[0][INFO] Kernel region: [0x1a00000 - 0x1e00000]
-[0][INFO] A pure Rust application is running on top of HermitCore!
-[0][INFO] Heap: size 26 MB, start address 0x1e00000
-[0][INFO] Heap is located at 0x1e00000..0x3800000 (0 Bytes unmapped)
-[0][INFO] 
-[0][INFO] ===================== PHYSICAL MEMORY FREE LIST ======================
-[0][INFO] 0x00000003800000 - 0x00000003FE0000
-[0][INFO] ======================================================================
-[0][INFO] 
-[0][INFO] 
-[0][INFO] ================== KERNEL VIRTUAL MEMORY FREE LIST ===================
-[0][INFO] 0x00000003800000 - 0x00800000000000
-[0][INFO] ======================================================================
-[0][INFO] 
-[0][INFO] 
-[0][INFO] ========================== CPU INFORMATION ===========================
-[0][INFO] Model:                   QEMU Virtual CPU version 2.5+
-[0][INFO] Frequency:               3191 MHz (from Measurement)
-[0][INFO] SpeedStep Technology:    Not Available
-[0][INFO] Features:                MMX SSE SSE2 SSE3 MCE FXSR XSAVE RDTSCP CLFLUSH X2APIC HYPERVISOR FSGSBASE 
-[0][INFO] Physical Address Width:  40 bits
-[0][INFO] Linear Address Width:    48 bits
-[0][INFO] Supports 1GiB Pages:     No
-[0][INFO] ======================================================================
-[0][INFO] 
-[0][INFO] HermitCore-rs booted on 2023-06-21 15:31:33.443215 +00:00:00
-[0][WARN] PCI Device @8086:7000 has multiple functions! Currently only one is handled.
-[0][INFO] 
-[0][INFO] ======================== PCI BUS INFORMATION =========================
-[0][INFO] 00:00 Unknown Class [0600]: Unknown Vendor Unknown Device [8086:1237]
-[0][INFO] 00:01 Unknown Class [0601]: Unknown Vendor Unknown Device [8086:7000]
-[0][INFO] 00:02 Unknown Class [0300]: Unknown Vendor Unknown Device [1234:1111], MemoryBar: 0xfd000000 (size 0x1000000), MemoryBar: 0xfebf0000 (size 0x1000)
-[0][INFO] 00:03 Unknown Class [0200]: Unknown Vendor Unknown Device [8086:100E], IRQ 11, MemoryBar: 0xfebc0000 (size 0x20000), IOBar: 0xc000 (size 0x40)
-[0][INFO] ======================================================================
-[0][INFO] 
-[0][INFO] Found an ACPI revision 0 table at 0xF5AE0 with OEM ID "BOCHS "
-[0][INFO] IOAPIC v17 has 24 entries
-[0][INFO] Disable IOAPIC timer
-[0][INFO] 
-[0][INFO] ===================== MULTIPROCESSOR INFORMATION =====================
-[0][INFO] APIC in use:             x2APIC
-[0][INFO] Initialized CPUs:        1
-[0][INFO] ======================================================================
-[0][INFO] 
-[0][INFO] Compiled with PCI support
-[0][INFO] Compiled with ACPI support
-[0][INFO] HermitCore is running on common system!
-[0][WARN] Unable to read entropy! Fallback to a naive implementation!
-Hello World!
-[0][INFO] Number of interrupts
-[0][INFO] [0][7]: 1
-[0][INFO] Shutting down system
-```
 
-
+RustyHermit supports [virtio-net](https://www.redhat.com/en/blog/introduction-virtio-networking-and-vhost-net) atm.
 
 ### [Unikraft](https://github.com/unikraft/unikraft)
 - a unikernel dev kit
