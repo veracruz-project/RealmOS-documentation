@@ -94,18 +94,24 @@ rm -rf prefix/aarch64-unknown-redox/relibc-install/ cookbook/recipes/gcc/{build,
 - In their repo they don't mention support for aarch64 for some reason adn they don't have getting started instructions for `aarch64`, but they do support different architectures. (maybe outdated documentation?)
 The setup is simple, create you own rust hello_world application and add the following changes:
 
+(The following instructions worked in a `debian:12` Docker container.)
+
 requirements:
 ```sh
-cargo +nightly install uhyve --locked
-cargo install cargo-download
+sudo apt-get install -y build-essential curl git libssl-dev ninja-build \
+  pkg-config python3 qemu-system-arm
+curl https://sh.rustup.rs -sSf | sh
+source "$HOME/.cargo/env"
+rustup default nightly-2023-05-01
 rustup component add rust-src
 rustup component add llvm-tools-preview
+cargo install uhyve --locked
+cargo install cargo-download
 ```
 To build and run a hello-world rust (with std) application:
 ```sh
 cargo new hello_world
 cd hello_world
-rustup default nightly
 ```
 
 add the following changes to `src/main.rs`:
@@ -120,7 +126,7 @@ fn main() {
 and these changes to `Cargo.toml`:
 ```sh
 [target.'cfg(target_os = "hermit")'.dependencies]
-hermit-sys = { version = "0.4.1" , default-features = false }
+hermit-sys = { version = "0.5.1" , default-features = false }
 
 [features]
 default = ["pci", "acpi"]
@@ -141,7 +147,7 @@ To run the application with QEMU, we need a bootloader, rustyHermit provides a r
 ```sh
 git clone https://github.com/hermitcore/rusty-loader.git
 cd rusty-loader
-cargo xtask build --target aarch64
+cargo xtask build --target aarch64 --release
 ```
 
 Now to run the application with QEMU:
@@ -152,7 +158,7 @@ qemu-system-aarch64 \
                   -semihosting -L /usr/share/qemu \
                   -display none -serial stdio \
                   -kernel target/aarch64/release/rusty-loader \
-                  -device guest-loader,addr=0x48000000,initrd=../rusty-hermit/target/aarch64-unknown-hermit/debug/hello_world
+                  -device guest-loader,addr=0x48000000,initrd=../hello_world/target/aarch64-unknown-hermit/debug/hello_world
 ```
 
 > output
