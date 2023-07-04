@@ -211,34 +211,41 @@ Hello World!
 ```
 RustyHermit can either use Qemu to run (in this case we need rusty-loader) or they have their own minimal hypervisor called uhyve, but there is only x86 support for uhyve ( and it doesn't work ..)
 
-To Build and run a hello-world application for x86:
+RustyHermit supports [virtio-net](https://www.redhat.com/en/blog/introduction-virtio-networking-and-vhost-net) atm:
+
+To test `virtio-net`:
+
+To Build the application:
 ```sh
-cargo new hello_world
-cd hello_world
-rustup default nightly
-rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
-PATH=${HOME}/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin:$PATH cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
-cargo build -Z build-std=std,core,alloc,panic_abort -Z build-std-features=compiler-builtins-mem --target x86_64-unknown-hermit
-```
-RustyHermit can either use Qemu to run (in this case we need rusty-loader) or they have their own minimal hypervisor called uhyve, but there is only x86 support for uhyve ( and it doesn't work ..)
-To Build for x86 and test in uhyve
-```sh
-uhyve target/x86_64-unknown-hermit/debug/hello_world
+cd httpd
+cargo build -Z build-std=std,core,alloc,panic_abort -Z build-std-features=compiler-builtins-mem --target aarch64-unknown-hermit
 ```
 
-To run the application with QEMU, we need to a kernel/bootloader, rustyHermit provides a rusty-loader, to build it:
+To run the application with QEMU, we need a bootloader, rustyHermit provides a rusty-loader, to build it:
 ```sh
 git clone https://github.com/hermitcore/rusty-loader.git
 cd rusty-loader
-cargo xtask build --target x86_64
+cargo xtask build --target aarch64
 ```
 
-Now to run the application with QEMU:
+Now to run the application with QEMU: (make sure the paths to rusty-loader and the application are correct)
+
 ```sh
-qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -L /usr/share/qemu -kernel target/x86_64/debug/rusty-loader -initrd ../rusty-hermit/target/x86_64-unknown-hermit/debug/hello_world -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr -device isa-debug-exit,iobase=0xf4,iosize=0x04 -enable-kvm
+qemu-system-aarch64 \
+                  -machine virt,gic-version=3 \
+                  -cpu cortex-a72 -smp 1 -m 512M  \
+                  -semihosting -L /usr/share/qemu \
+                  -display none -serial stdio \
+                  -kernel target/aarch64/release/rusty-loader \
+                  -device guest-loader,addr=0x48000000,initrd=../../RealmOS-documentation/httpd/target/aarch64-unknown-hermit/debug/httpd \
+                  -netdev user,id=u1,hostfwd=tcp::8080-:8080 \
+                  -device virtio-net-pci,netdev=u1,disable-legacy=on 
 ```
 
-RustyHermit supports [virtio-net](https://www.redhat.com/en/blog/introduction-virtio-networking-and-vhost-net) atm.
+on another terminal window:
+```sh
+curl http://127.0.0.1:9975
+```
 
 ### [Unikraft](https://github.com/unikraft/unikraft)
 - a unikernel dev kit
