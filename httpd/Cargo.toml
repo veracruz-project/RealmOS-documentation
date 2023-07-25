@@ -11,19 +11,7 @@ tiny_http = "0.12"
 [dependencies.time]
 version = "0.3"
 
-[target.'cfg(target_os = "hermit")'.dependencies]
-hermit-sys = { version = "0.5.1" , default-features = false }
-
-[features]
-default = ["pci", "pci-ids", "acpi", "tcp"]
-vga = ["hermit-sys/vga"]
-dhcpv4 = ["hermit-sys/dhcpv4"]
-pci = ["hermit-sys/pci"]
-pci-ids = ["hermit-sys/pci-ids"]
-acpi = ["hermit-sys/acpi"]
-fsgsbase = ["hermit-sys/fsgsbase"]
-smp = ["hermit-sys/smp"]
-tcp = ["hermit-sys/tcp"]
-instrument = ["hermit-sys/instrument"]
-trace = ["hermit-sys/trace"]
-ci = []
+[target.'cfg(target_os = "hermit")'.dependencies.hermit-sys]
+hermit-sys = "0.5.1"
+default-features = false
+features = ["pci","tcp"]

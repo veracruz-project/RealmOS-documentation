@@ -224,7 +224,7 @@ To test `virtio-net`:
 To Build the application:
 ```sh
 cd httpd
-cargo build -Z build-std=std,core,alloc,panic_abort -Z build-std-features=compiler-builtins-mem --target aarch64-unknown-hermit
+HERMIT_IP="10.0.2.15" HERMIT_GATEWAY="10.0.2.2" cargo build -Z build-std=std,core,alloc,panic_abort -Z build-std-features=compiler-builtins-mem --target aarch64-unknown-hermit
 ```
 
 To run the application with QEMU, we need a bootloader, rustyHermit provides a rusty-loader, to build it:
@@ -248,9 +248,106 @@ qemu-system-aarch64 \
                   -device virtio-net-pci,netdev=u1,disable-legacy=on 
 ```
 
-on another terminal window:
+> output
+
 ```sh
-curl http://127.0.0.1:9975
+[LOADER][INFO] Loader: [0x40200000 - 0x4021f000]
+[LOADER][INFO] Found ELF file with size 36434712
+[LOADER][INFO] Parsing kernel from ELF at 0x48000000..0x4a2bf318 (36434712 B)
+[LOADER][INFO] Loading kernel to 0x40400000
+[LOADER][INFO] TLS is at 0x406d42c8..0x406d4361 (153 B)
+[LOADER][INFO] Detect 1 CPU(s)
+[LOADER][INFO] Detect UART at 0x9000000
+[LOADER][INFO] Jumping to HermitCore Application Entry Point at 0x406c4150
+[0][INFO] Welcome to HermitCore-rs 0.6.2
+[0][INFO] Kernel starts at 0x40400000
+[0][INFO] BSS starts at 0x4070cf98
+[0][INFO] TLS starts at 0x406d42c8 (size 153 Bytes)
+[0][INFO] RAM starts at physical address 0x40000000
+[0][INFO] Physical address range: 16384GB
+[0][INFO] Support of 4KB pages: true
+[0][INFO] Support of 16KB pages: false
+[0][INFO] Support of 64KB pages: true
+[0][INFO] Total memory size: 504 MB
+[0][INFO] Kernel region: [0x40400000 - 0x40800000]
+[0][INFO] A pure Rust application is running on top of HermitCore!
+[0][INFO] Heap: size 442 MB, start address 0x200000
+[0][INFO] Heap is located at 0x200000..0x1bc00000 (0 Bytes unmapped)
+[0][INFO] 
+[0][INFO] ===================== PHYSICAL MEMORY FREE LIST ======================
+[0][INFO] 0x0000005C2DD000 - 0x00000060000000
+[0][INFO] ======================================================================
+[0][INFO] 
+[0][INFO] 
+[0][INFO] ================== KERNEL VIRTUAL MEMORY FREE LIST ===================
+[0][INFO] 0x00000000002000 - 0x00000000200000
+[0][INFO] 0x0000001BC00000 - 0x00000040000000
+[0][INFO] 0x00000040800000 - 0x00000100000000
+[0][INFO] ======================================================================
+[0][INFO] 
+[0][INFO] Intialize generic interrupt controller
+[0][INFO] Found GIC Distributor interface at 0x8000000 (size 0x10000)
+[0][INFO] Found generic interrupt controller at 0x80A0000 (size 0xF60000)
+[0][INFO] 
+[0][INFO] ========================== CPU INFORMATION ===========================
+[0][INFO] Processor compatiblity:  arm,cortex-a72
+[0][INFO] Counter frequency:       62500000 Hz (from CNTFRQ_EL0)
+[0][INFO] Run on hypervisor
+[0][INFO] ======================================================================
+[0][INFO] 
+[0][INFO] HermitCore-rs booted on 2023-07-25 13:17:31.0 +00:00:00
+[0][INFO] Mapping PCI Enhanced Configuration Space interface to virtual address 0x20000000 (size 0x10000000)
+[0][INFO] Scanning PCI Busses 0 to 255
+[0][INFO] Compiled with PCI support
+[0][INFO] 
+[0][INFO] ======================== PCI BUS INFORMATION =========================
+[0][INFO] 00:00 Unknown Class [0600]: Unknown Vendor Unknown Device [1B36:0008]
+[0][INFO] 00:01 Unknown Class [0200]: Unknown Vendor Unknown Device [1AF4:1041], IRQ 4, BAR1 Memory32 { address: 0x0, size: 0x1000, prefetchable: false }, BAR4 Memory64 { address: 0x8000000000, size: 0x4000, prefetchable: true }
+[0][INFO] ======================================================================
+[0][INFO] 
+[0][INFO] HermitCore is running on common system!
+[0][INFO] Found virtio network device with device id 0x1041
+[0][WARN] Currently only mapping of 64 bit BAR's is supported!
+[0][WARN] Currently only mapping of 64 bit BAR's is supported!
+[0][INFO] Non Virtio PCI capability with id 11 found. And NOT used.
+[0][ERROR] Found virtio capability whose BAR is not mapped or non existing. Capability of type 5 and id 0 for device 1041, can not be used!
+[0][INFO] Feature set wanted by network driver are in conformance with specification.
+[0][INFO] Feature set wanted by network driver are in conformance with specification.
+[0][INFO] Driver found a subset of features for virtio device 1041. Features are: [VIRTIO_NET_F_MAC, VIRTIO_NET_F_STATUS, VIRTIO_F_RING_INDIRECT_DESC, VIRTIO_F_VERSION_1]
+[0][INFO] Features have been negotiated between virtio network device 1041 and driver.
+[0][INFO] Created SplitVq: idx=0, size=256
+[0][INFO] Created SplitVq: idx=1, size=256
+[0][INFO] Network driver successfully initialized virtqueues.
+[0][INFO] Device specific initialization for Virtio network device 1041 finished
+[0][INFO] Network device with id 1041, has been initialized by driver!
+[0][INFO] Virtio-net link is up after initialization.
+[0][INFO] Virtio network driver initialized.
+[0][INFO] Install virtio interrupt handler at line 4
+[0][INFO] Try to nitialize network!
+[0][INFO] MAC address 52-54-00-12-34-56
+[0][INFO] MTU: 1500 bytes
+[0][INFO] DHCP lost config!
+[0][INFO] DHCP config acquired!
+[0][INFO] IP address:      10.0.2.15/24
+[0][INFO] Default gateway: 10.0.2.2
+[0][INFO] DNS server 0:    10.0.2.3
+[0][WARN] Unable to read entropy! Fallback to a naive implementation!
+Starting server on port 8080
+Now listening on port 8080
+```
+
+on another terminal window, run:
+```sh
+curl http://127.0.0.1:8080
+```
+
+> output 
+> hello world
+
+on the server (qemu) side, you should see an output:
+```sh
+received request! method: Get, url: "/", headers: [Header { field: HeaderField("Host"), value: "127.0.0.1:8080" }, Header { field: HeaderField("User-Agent"), value: "curl/7.68.0" }, Header { field: HeaderField("Accept"), value: "*/*" }]
+qemu-system-aarch64: terminating on signal 2
 ```
 
 ### [Unikraft](https://github.com/unikraft/unikraft)
