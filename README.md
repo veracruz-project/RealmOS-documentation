@@ -20,9 +20,10 @@ A summary:
 a Microkernel written in Rust. it has support for Rust std on aarch64, no vsock support.
         - support for aarch64, builds with no errors but I encountered some runtime errors (it's been reported in there gitlab just few weeks ago) 
 https://gitlab.redox-os.org/redox-os/redox/-/issues/1376
-        - Their repo seems healthy, fairly active with few contributors.
+        - Their repo seems healthy, fairly active with few contributors, compared to the rest, their code base is a bit larger and complex.
 
 To get started: 
+> PS: we tried running Redox on June 2023
 
 (The following instructions also worked in a `debian:11` Docker container
 with `--device /dev/fuse --cap-add SYS_ADMIN --privileged`.)
@@ -87,14 +88,26 @@ Clean previous build:
 rm -rf prefix/aarch64-unknown-redox/relibc-install/ cookbook/recipes/gcc/{build,sysroot,stage*} build/aarch64/*/{harddrive.img,livedisk.iso}
 ```
 
+- we haven't tried to run it inside of CCA or get an application running on top of redox on it's own since the previously mentioned error is still not fixed. 
+
+### [Unikraft](https://github.com/unikraft/unikraft)
+
+- a unikernel dev kit
+- rust support only for x86 (and only supports no_std), no rust for aarch64 as of June 2023.
+- they just added support for vsock.
+
+Since there is no rust support for aarch64, we moved on to find another libOS.
+
 
 ### [RustyHermit](https://github.com/hermitcore/rusty-hermit)
 
 - A Rust based, lightwight unikernel, it can run Rust applications (with std), as well as C/C++/Go/Fortran applications. no vsock support atm. Rust applications that do not bypass the Rust runtime and directly use OS services are able to run on RustyHermit without modifications.
-- In their repo they don't mention support for aarch64 for some reason adn they don't have getting started instructions for `aarch64`, but they do support different architectures. (maybe outdated documentation?)
+- In their repo they don't mention support for aarch64 for some reason and they don't have getting started instructions for `aarch64`, but they do support different architectures. (maybe outdated documentation?)
 The setup is simple, create you own rust hello_world application and add the following changes:
 
 (The following instructions worked in a `debian:12` Docker container.)
+
+> PS: last time we tested this setup in August 2023.
 
 requirements:
 ```sh
@@ -162,7 +175,7 @@ qemu-system-aarch64 \
 ```
 
 > output
-```
+```sh
 [LOADER][INFO] Loader: [0x40200000 - 0x4021f000]
 [LOADER][INFO] Found ELF file with size 20629232
 [LOADER][INFO] Parsing kernel from ELF at 0x48000000..0x493ac6f0 (20629232 B)
@@ -215,7 +228,7 @@ qemu-system-aarch64 \
 Hello World!
 [0][INFO] Shutting down system
 ```
-RustyHermit can either use Qemu to run (in this case we need rusty-loader) or they have their own minimal hypervisor called uhyve, but there is only x86 support for uhyve ( and it doesn't work ..)
+RustyHermit can either use Qemu to run (in this case we need rusty-loader) or they have their own minimal hypervisor called `uhyve`, but there is only x86 support for `uhyve` ( and it doesn't work ..)
 
 RustyHermit supports [virtio-net](https://www.redhat.com/en/blog/introduction-virtio-networking-and-vhost-net) atm:
 
@@ -351,9 +364,49 @@ Terminate the server with C-c:
 qemu-system-aarch64: terminating on signal 2
 ```
 
-### [Unikraft](https://github.com/unikraft/unikraft)
-- a unikernel dev kit
-- rust support only for x86 (and only supports no_std), no rust for aarch64.
-- they just added support for vsock.
+#### RustyHermit on CCA
 
-TO-DO: still trying to test unikraft
+- Tried following the same instructions to start a rustyHermit vm inside of CCA (FVP) using qemu. 
+
+- When we create the vm inside the normal world we get the following error. (we didn't try to and solve the issue)
+
+```sh
+LOADER][INFO] Loader: [0x40200000 - 0x4021f000]
+[LOADER][INFO] Found ELF file with size 18396400
+[LOADER][INFO] Parsing kernel from ELF at 0x48000000..0x4918b4f0 (18396400 B)
+[LOADER][INFO] Loading kernel to 0x40400000
+[LOADER][INFO] Detect 1 CPU(s)
+[LOADER][INFO] Detect UART at 0x9000000
+[LOADER][INFO] Jumping to HermitCore Application Entry Point at 0x4045a000
+[0][INFO] Welcome to HermitCore-rs 0.6.1
+[0][INFO] Kernel starts at 0x40400000
+[0][INFO] BSS starts at 0x4047fd00
+[0][INFO] TLS starts at 0x0 (size 0 Bytes)
+[0][INFO] RAM starts at physical address 0x40000000
+[0][INFO] Physical address range: 1024GB
+[0][INFO] Support of 4KB pages: true
+[0][INFO] Support of 16KB pages: true
+[0][INFO] Support of 64KB pages: true
+[0][INFO] Total memory size: 506 MB
+[0][INFO] Kernel region: [0x40400000 - 0x40600000]
+[0][INFO] A pure Rust application is running on top of HermitCore!
+[0][INFO] Heap: size 446 MB, start address 0x200000
+[0][INFO] Heap is located at 0x200000..0x1c000000 (0 Bytes unmapped)
+[0][INFO] 
+[0][INFO] ===================== PHYSICAL MEMORY FREE LIST ======================
+[0][INFO] 0x0000005C4DF000 - 0x00000060000000
+[0][INFO] ======================================================================
+[0][INFO] 
+[0][INFO] 
+[0][INFO] ================== KERNEL VIRTUAL MEMORY FREE LIST ===================
+[0][INFO] 0x00000000002000 - 0x00000000200000
+[0][INFO] 0x0000001C000000 - 0x00000040000000
+[0][INFO] 0x00000040600000 - 0x00000100000000
+[0][INFO] ======================================================================
+[0][INFO] 
+[0][INFO] The current hermit-kernel is only implemented up to this point on aarch64.
+[0][INFO] Attempting to exit via QEMU.
+# 
+```
+
+- If we try to create the vm in the realm world, it just crashes after it tries to ftech the device tree. 
