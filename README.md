@@ -123,7 +123,7 @@ Since there is no rust support for aarch64, we moved on to find another libOS.
   [libc](https://crates.io/crates/libc).
 - Virtio-net is supported, but vsock is not finished:
   [#826](https://github.com/hermit-os/kernel/pull/826)
-- [Recent work on kernel](https://github.com/hermit-os/kernel/issues?q=is%3Aupdated-desc)
+- [Recent work on kernel](https://github.com/hermit-os/kernel/issues?q=sort%3Aupdated-desc)
   (there are also [other repos](https://github.com/hermit-os/))
 
 To run a Rust hello_world program on AArch64 with Hermit from
@@ -170,7 +170,6 @@ use hermit as _;
 
 fn main() {
     println!("Hello, world!");
-    loop {}
 }
 ```
 
@@ -183,12 +182,12 @@ cargo build --target aarch64-unknown-hermit \
 qemu-system-aarch64 \
     -machine virt,gic-version=3 \
     -cpu cortex-a72 -smp 1 -m 512M  \
-    -display none -serial stdio \
+    -display none -serial stdio -semihosting \
     -kernel ../loader/target/aarch64/release/hermit-loader \
     -device guest-loader,addr=0x48000000,initrd=target/aarch64-unknown-hermit/debug/hello
 ```
 
-Last line of output should be:
+This line should appear in the output near the end:
 ```
 Hello, world!
 ```
@@ -220,7 +219,7 @@ cargo build --target aarch64-unknown-hermit \
 qemu-system-aarch64 \
     -machine virt,gic-version=3 \
     -cpu cortex-a72 -smp 1 -m 512M  \
-    -display none -serial stdio \
+    -display none -serial stdio -semihosting \
     -kernel ../../loader/target/aarch64/release/hermit-loader \
     -device guest-loader,addr=0x48000000,initrd=target/aarch64-unknown-hermit/debug/httpd \
     -netdev user,id=u1,hostfwd=tcp::8080-:8080 \
