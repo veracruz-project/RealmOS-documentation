@@ -17,10 +17,11 @@ Summary:
 
 | Name                                                        | Type                     | Rust std support | Vsock
 |-------------------------------------------------------------|--------------------------|------------------|------------------------
-| [CantripOS](https://github.com/AmbiML/sparrow-cantrip-full) | Low-TCB OS based on seL4 | No               | No
 | [Redox](https://gitlab.redox-os.org/redox-os/redox)         | Microkernel              | Yes              | No
-| [Hermit](https://github.com/hermit-os)                      | Unikernel / library OS   | Yes              | Not yet, but virtio-net
+| [CantripOS](https://github.com/AmbiML/sparrow-cantrip-full) | Low-TCB OS based on seL4 | No               | No
 | [Unikraft](https://github.com/unikraft/unikraft)            | Unikernel dev kit        | No               | Recently added
+| [Hermit](https://github.com/hermit-os)                      | Unikernel / library OS   | Yes              | Not yet, but virtio-net
+| [Theseus OS](https://github.com/theseus-os/Theseus)         | New OS written in Rust   | No               | No
 
 ### [Redox](https://gitlab.redox-os.org/redox-os/redox)
 
@@ -285,3 +286,56 @@ LOADER][INFO] Loader: [0x40200000 - 0x4021f000]
 ```
 
 - If we try to create the vm in the realm world, it just crashes after it tries to ftech the device tree.
+
+### [Theseus OS](https://github.com/theseus-os/Theseus)
+
+Theseus is a new OS written in Rust to experiment with shifting
+responsibilities like resource management into the compiler and other
+ideas. Although there is no Rust std for Theseus, [Wasmtime has been
+ported to
+Theseus](https://www.theseus-os.com/2022/06/21/wasmtime-complete-no_std-port.html)
+as WASM is seen as the way to run software written in an unsafe
+language on Theseus.
+
+Theseus was originally written for x86_64 but most of the core
+subsystems are now also working on AArch64.
+
+To build and run Theseus on AArch64 (tested in a `debian:12` Docker
+container on 28 Sep 2023):
+
+```
+sudo apt-get install -y curl gcc gcc-aarch64-linux-gnu git grub-pc-bin make nasm \
+  qemu-system-arm wget xorriso
+curl https://sh.rustup.rs -sSf | sh
+source "$HOME/.cargo/env"
+git clone --recurse-submodules --depth 1 https://github.com/theseus-os/Theseus.git
+cd Theseus
+make ARCH=aarch64 iso
+make ARCH=aarch64 orun host=no graphic=no
+```
+
+You can then hit return to see the prompt `>`. Currently only
+statically linked applications work from this console but you can do,
+for example:
+```
+> cd /extra_files
+> cd foo
+no such file or directory: foo
+exit 1
+> cd wasm
+```
+
+Exit QEMU with C-a x.
+
+Outside Docker it is also possible to run Theseus with:
+```
+make ARCH=aarch64 orun host=no
+```
+
+You then get a graphical window, but [the graphics stack has not been
+fully ported to
+AArch64](https://github.com/theseus-os/Theseus/issues/1049) so this is
+currently not useful on AArch64.
+
+Test on Intel by substituting `x86_64` for `aarch64` and use
+`host=yes` if the host is also Intel.
