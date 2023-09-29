@@ -17,8 +17,8 @@ Summary:
 
 | Name                                                        | Type                     | Rust std support | Vsock
 |-------------------------------------------------------------|--------------------------|------------------|------------------------
-| [Redox](https://gitlab.redox-os.org/redox-os/redox)         | Microkernel              | Yes              | No
 | [CantripOS](https://github.com/AmbiML/sparrow-cantrip-full) | Low-TCB OS based on seL4 | No               | No
+| [Redox](https://gitlab.redox-os.org/redox-os/redox)         | Microkernel              | Yes              | No
 | [Unikraft](https://github.com/unikraft/unikraft)            | Unikernel dev kit        | No               | Recently added
 | [Hermit](https://github.com/hermit-os)                      | Unikernel / library OS   | Yes              | Not yet, but virtio-net
 | [Theseus OS](https://github.com/theseus-os/Theseus)         | New OS written in Rust   | No               | No
